@@ -1,0 +1,12 @@
+version: '2.1'
+services:
+  plex-hub-manager:
+    image: silkychap/plex-hub-manager:latest
+    container_name: plex-hub-manager
+    environment:
+      - PLEX_URL=<Your plex url>
+      - PLEX_TOKEN=<Your plex token>
+      - LIBRARY_NAMES=Films,TV Shows
+      - SECONDS_TO_WAIT=86400
+      - IGNORE_LIST=Continue Watching,Recently Released Movies,Top Movies of the week,Recently Released Episodes,IMDb Popular,Recently Added in TV shows,Seasonal Movies
+    restart: unless-stopped
