@@ -19,6 +19,22 @@ Follow this guide to obtain your Plex authentication token: https://support.plex
 
 1. Create the docker-compose.yml File:
 
+```yaml
+version: '2.1'
+services:
+  plex-hub-manager:
+    image: silkychap/plex-hub-manager:latest
+    container_name: plex-hub-manager
+    environment:
+      - PLEX_URL=<Your plex url> # eg http://192.168.0.142:32400
+      - PLEX_TOKEN=<Your plex token>
+      - LIBRARY_NAMES=Films,TV Shows # Names of your plex libraries
+      - SECONDS_TO_WAIT=86400 # Time between executions
+      - IGNORE_LIST=Continue Watching,Recently Released Movies # Names of the collections you want the randomiser to ignore
+    restart: unless-stopped
+
+```
+
 2. Copy the provided docker-compose.yml content into a file named docker-compose.yml on your system.
 Replace the placeholders with your actual Plex URL, Plex token, desired library names, and customization options (if needed).
 
@@ -27,6 +43,8 @@ Replace the placeholders with your actual Plex URL, Plex token, desired library 
 ## Customization
 
 IGNORE_LIST: Prevent specific hubs from being randomized by adding their names to this list (comma-separated). This is ideal for pinning your favorite or in-progress collections.
+
+LIBRARY_NAMES: The actual names of the libraries you want it to randomise
 
 ## Notes
 
