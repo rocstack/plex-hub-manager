@@ -30,35 +30,56 @@ def clean_identifier(hub_identifier: str):
     return clean_identifier
 
 
-def reorder_hub(hub_id: str, after_hub_id: str, section_id: int = 1):
+def reorder_hub(hub_title: str, hub_id: str, after_hub_id: str, section_id: int = 1):
     url = f"{userInputs.plex_url}/hubs/sections/{section_id}/manage/{hub_id}/move?after={after_hub_id}"
     headers = {'X-Plex-Token':  userInputs.plex_token}
 
     response = requests.put(url, headers=headers)
 
     if response.status_code == 200:
-        print("Hub order updated successfully", hub_id)
+        print(f"Hub order updated successfully: {hub_title}")
     else:
-        print(f"Failed to update hub order. Error: {response.text}")
+        print(f"Failed to update hub order for {hub_title}. Error: {response.text}")
+
+
+def validate_ignore_list(hubs, ignore_list, library_name):
+    existing_hub_titles = {hub.title for hub in hubs}
+    valid_ignore_list = []
+    invalid_entries = []
+
+    for entry in ignore_list:
+        if entry in existing_hub_titles:
+            valid_ignore_list.append(entry)
+        else:
+            invalid_entries.append(entry)
+
+    print("Validated Ignore List:")
+    print(f"Valid Entries: {valid_ignore_list}")
+    if invalid_entries:
+        print(f"Invalid Entries (not found in {library_name}): {invalid_entries}")
+
+    return valid_ignore_list
 
 
 def randomize_hub_order(plex, library_name: str):
     movie_library = plex.library.section(library_name)
-
     hubs = movie_library.hubs()
 
-    # Filter based on title and build identifiers list
+    # Validate ignore list
     ignore_list = userInputs.ignore_list.split(",")
-    identifiers_to_reorder = [clean_identifier(hub.hubIdentifier) for hub in hubs
-                              if hub.title not in ignore_list]
+    valid_ignore_list = validate_ignore_list(hubs, ignore_list, library_name)
 
-    random.shuffle(identifiers_to_reorder)
+    # Filter based on title and build identifiers list
+    hubs_to_reorder = [(hub.title, clean_identifier(hub.hubIdentifier)) for hub in hubs
+                       if hub.title not in valid_ignore_list]
 
-    for i in range(len(identifiers_to_reorder) - 1):
-        current_id = identifiers_to_reorder[i]
-        next_id = identifiers_to_reorder[i + 1]
+    random.shuffle(hubs_to_reorder)
 
-        reorder_hub(current_id, next_id, hubs[0].librarySectionID)
+    for i in range(len(hubs_to_reorder) - 1):
+        current_title, current_id = hubs_to_reorder[i]
+        next_id = hubs_to_reorder[i + 1][1]
+
+        reorder_hub(current_title, current_id, next_id, hubs[0].librarySectionID)
 
 
 def run():
